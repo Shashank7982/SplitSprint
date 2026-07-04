@@ -32,12 +32,19 @@ const DashboardPage = () => {
 
   const pools = poolsData?.pools || [];
 
+  // Robust ID comparison: convert both sides to String to handle ObjectId vs string mismatches
+  const currentUserId = String(user?.id || user?._id || '');
+  const matchesMember = (m) => {
+    const memberId = String(m.userId?._id || m.userId || '');
+    return memberId && currentUserId && memberId === currentUserId;
+  };
+
   // Classify by user role inside each pool
   const myHostedPools = pools.filter((p) =>
-    p.members?.some((m) => (m.userId === (user?.id || user?._id) || m.userId?._id === (user?.id || user?._id)) && m.role === 'host')
+    p.members?.some((m) => matchesMember(m) && m.role === 'host')
   );
   const myContribPools = pools.filter((p) =>
-    p.members?.some((m) => (m.userId === (user?.id || user?._id) || m.userId?._id === (user?.id || user?._id)) && m.role === 'contributor')
+    p.members?.some((m) => matchesMember(m) && m.role === 'contributor')
   );
 
   const { data: txData } = useMyTransactions();
