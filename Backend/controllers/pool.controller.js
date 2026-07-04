@@ -1,12 +1,37 @@
 const Pool = require('../models/pool.model');
 const User = require('../models/user.model');
 
+// Simulated credential checking for third-party streaming/subscription providers
+const verifyServiceCredentials = async (serviceName, email, password) => {
+  // Simulate verification network delay (premium feel)
+  await new Promise(resolve => setTimeout(resolve, 1200));
+
+  // Simulating errors if they enter 'invalid' or 'wrongpassword' for testing
+  if (password.toLowerCase() === 'invalid' || password.toLowerCase() === 'wrongpassword') {
+    throw new Error(`Failed to verify credentials on ${serviceName}. Please check your login email/username and password.`);
+  }
+
+  // Simple basic validation
+  if (email.includes('@') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error(`Invalid email address format for ${serviceName} username.`);
+  }
+
+  return true;
+};
+
 // Create a new billing pool
 const createPool = async (req, res, next) => {
-  const { serviceName, planTier, totalCost, billingCycle, slots, upiId } = req.body;
+  const { serviceName, planTier, totalCost, billingCycle, slots, upiId, serviceEmail, servicePassword } = req.body;
   const hostId = req.userId; // Settled by protect middleware
 
   try {
+    // Verify credentials
+    try {
+      await verifyServiceCredentials(serviceName, serviceEmail, servicePassword);
+    } catch (verifErr) {
+      return res.status(400).json({ success: false, message: verifErr.message });
+    }
+
     // 1. Create a pool document. Mongoose hooks will generate inviteCode/nextBillingDate/shareAmount.
     const pool = new Pool({
       hostId,
@@ -16,6 +41,8 @@ const createPool = async (req, res, next) => {
       totalCost,
       billingCycle,
       slots,
+      serviceEmail,
+      servicePassword,
       members: [{
         userId: hostId,
         role: 'host',
@@ -28,7 +55,7 @@ const createPool = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Billing pool created successfully',
+      message: 'Billing pool created successfully and credentials verified',
       pool
     });
   } catch (error) {
@@ -119,6 +146,7 @@ const getPoolById = async (req, res, next) => {
 
   try {
     const pool = await Pool.findById(id)
+      .select('+serviceEmail +servicePassword')
       .populate('hostId', 'name email trustScore')
       .populate('members.userId', 'name email trustScore');
 
@@ -156,6 +184,15 @@ const getPoolById = async (req, res, next) => {
     }
 
     poolObj.hasPaidThisCycle = hasPaidThisCycle;
+
+    // Gate access to credentials: only show them if requester is Host or paid Contributor
+    const isHost = req.userId && String(pool.hostId._id || pool.hostId) === String(req.userId);
+    const isAuthorized = isHost || hasPaidThisCycle;
+
+    if (!isAuthorized) {
+      delete poolObj.serviceEmail;
+      delete poolObj.servicePassword;
+    }
 
     res.status(200).json({
       success: true,

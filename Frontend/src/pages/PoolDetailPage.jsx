@@ -260,6 +260,63 @@ const PoolDetailPage = () => {
               </div>
             </div>
 
+            {/* Service Credentials Card */}
+            {isMember && (
+              <div className="bg-[#0F1115] border border-white/10 rounded-2xl p-7 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#F7931A]/5 blur-2xl rounded-full pointer-events-none" />
+                
+                <h2 className="font-heading font-semibold text-white mb-5 flex items-center gap-2">
+                  <Shield size={17} className="text-[#F7931A]" /> Service Login Details
+                </h2>
+
+                {(isHost || pool.hasPaidThisCycle || justPaid) ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="p-4 bg-black/40 border border-white/5 rounded-xl flex items-center justify-between">
+                      <div>
+                        <p className="font-mono text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Email / Username</p>
+                        <p className="font-mono text-sm text-white select-all">{pool.serviceEmail || 'N/A'}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(pool.serviceEmail || '');
+                          dispatch(addToast({ type: 'success', message: 'Email copied!' }));
+                        }}
+                        className="text-[#94A3B8] hover:text-[#F7931A] p-2 hover:bg-white/5 rounded-lg transition-all"
+                        title="Copy Username"
+                      >
+                        <Copy size={16} />
+                      </button>
+                    </div>
+
+                    <div className="p-4 bg-black/40 border border-white/5 rounded-xl flex items-center justify-between">
+                      <div>
+                        <p className="font-mono text-xs text-[#94A3B8] uppercase tracking-wider mb-1">Password</p>
+                        <p className="font-mono text-sm text-white select-all">{pool.servicePassword || 'N/A'}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(pool.servicePassword || '');
+                          dispatch(addToast({ type: 'success', message: 'Password copied!' }));
+                        }}
+                        className="text-[#94A3B8] hover:text-[#F7931A] p-2 hover:bg-white/5 rounded-lg transition-all"
+                        title="Copy Password"
+                      >
+                        <Copy size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6 bg-[#F7931A]/5 border border-[#F7931A]/20 rounded-xl text-center flex flex-col items-center gap-3">
+                    <Lock className="text-[#F7931A]" size={24} />
+                    <div>
+                      <p className="text-white text-sm font-semibold">Credentials Locked</p>
+                      <p className="text-[#94A3B8] text-xs mt-1">Please pay your share to view the account login details.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Members list */}
             <div className="bg-[#0F1115] border border-white/10 rounded-2xl p-7">
               <h2 className="font-heading font-semibold text-white mb-5 flex items-center gap-2">

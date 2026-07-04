@@ -65,6 +65,17 @@ const poolSchema = new mongoose.Schema({
     default: 'active'
   },
   members: [memberSchema],
+  serviceEmail: {
+    type: String,
+    required: [true, 'Service login email/username is required'],
+    trim: true,
+    select: false
+  },
+  servicePassword: {
+    type: String,
+    required: [true, 'Service login password is required'],
+    select: false
+  },
   inviteCode: {
     type: String,
     unique: true

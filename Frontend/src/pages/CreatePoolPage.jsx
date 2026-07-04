@@ -29,6 +29,8 @@ const CreatePoolPage = () => {
     billingCycle: 'monthly',
     slots: 4,
     upiId: '',
+    serviceEmail: '',
+    servicePassword: '',
   });
   const [errors, setErrors] = useState({});
   const [createdPool, setCreatedPool] = useState(null);
@@ -44,6 +46,8 @@ const CreatePoolPage = () => {
     if (!form.planTier.trim()) errs.planTier = 'Plan tier is required';
     if (!form.totalCost || isNaN(Number(form.totalCost)) || Number(form.totalCost) <= 0)
       errs.totalCost = 'Enter a valid cost';
+    if (!form.serviceEmail.trim()) errs.serviceEmail = 'Service login username/email is required';
+    if (!form.servicePassword.trim()) errs.servicePassword = 'Service login password is required';
     if (form.upiId.trim() && !form.upiId.includes('@'))
       errs.upiId = 'Enter a valid UPI ID (e.g., name@upi)';
     return errs;
@@ -208,6 +212,28 @@ const CreatePoolPage = () => {
               value={form.planTier}
               onChange={(e) => setForm({ ...form, planTier: e.target.value })}
               error={errors.planTier}
+            />
+
+            {/* Service Email/Username */}
+            <Input
+              label="Service Login Email / Username"
+              type="text"
+              id="pool-service-email"
+              placeholder="Username or email used to log into Netflix/Spotify"
+              value={form.serviceEmail}
+              onChange={(e) => setForm({ ...form, serviceEmail: e.target.value })}
+              error={errors.serviceEmail}
+            />
+
+            {/* Service Password */}
+            <Input
+              label="Service Login Password"
+              type="password"
+              id="pool-service-password"
+              placeholder="Password for the shared account"
+              value={form.servicePassword}
+              onChange={(e) => setForm({ ...form, servicePassword: e.target.value })}
+              error={errors.servicePassword}
             />
 
             {/* UPI ID */}

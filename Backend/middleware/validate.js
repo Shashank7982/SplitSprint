@@ -57,6 +57,13 @@ const createPoolRules = [
   body('slots')
     .isInt({ min: 2, max: 6 })
     .withMessage('Slots capacity must be between 2 and 6'),
+  body('serviceEmail')
+    .trim()
+    .notEmpty()
+    .withMessage('Service login email/username is required'),
+  body('servicePassword')
+    .notEmpty()
+    .withMessage('Service login password is required'),
   validateResults
 ];
 
