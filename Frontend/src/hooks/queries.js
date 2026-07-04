@@ -32,6 +32,19 @@ export const usePools = (filters = {}) => {
   });
 };
 
+export const useMyPools = () => {
+  return useQuery({
+    queryKey: ['my-pools'],
+    queryFn: async () => {
+      const { data } = await api.get('/api/pools/my-pools');
+      return data; // { hosted: [...], contributing: [...] }
+    },
+    staleTime: 0,
+  });
+};
+
+
+
 export const usePool = (id) => {
   return useQuery({
     queryKey: ['pool-detail', id],

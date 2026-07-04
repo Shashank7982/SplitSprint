@@ -86,6 +86,33 @@ const listPools = async (req, res, next) => {
   }
 };
 
+// Fetch only the logged-in user's pools (hosted + contributing)
+const getMyPools = async (req, res, next) => {
+  const userId = req.userId;
+  try {
+    const allMyPools = await Pool.find({
+      'members.userId': userId,
+      status: 'active',
+    })
+      .populate('hostId', 'name email trustScore')
+      .populate('members.userId', 'name email trustScore')
+      .sort({ createdAt: -1 });
+
+    const hosted = allMyPools.filter(p =>
+      p.members.some(m => String(m.userId?._id || m.userId) === String(userId) && m.role === 'host')
+    );
+    const contributing = allMyPools.filter(p =>
+      p.members.some(m => String(m.userId?._id || m.userId) === String(userId) && m.role === 'contributor')
+    );
+
+    res.status(200).json({ success: true, hosted, contributing });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
 // Fetch details for a single pool by ID
 const getPoolById = async (req, res, next) => {
   const { id } = req.params;
@@ -339,6 +366,7 @@ const verifyUpiPayment = async (req, res, next) => {
 module.exports = {
   createPool,
   listPools,
+  getMyPools,
   getPoolById,
   joinPool,
   approveMember,

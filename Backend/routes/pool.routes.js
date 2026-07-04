@@ -4,6 +4,7 @@ const { createPoolRules, joinPoolRules } = require('../middleware/validate');
 const {
   createPool,
   listPools,
+  getMyPools,
   getPoolById,
   joinPool,
   approveMember,
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.post('/', protect, createPoolRules, createPool);
 router.get('/', protect, listPools);
+router.get('/my-pools', protect, getMyPools); // MUST be before /:id
 router.get('/:id', protect, getPoolById);
 router.post('/:id/join', protect, joinPoolRules, joinPool);
 router.post('/:id/approve', protect, approveMember);
