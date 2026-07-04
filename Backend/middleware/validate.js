@@ -64,12 +64,17 @@ const createPoolRules = [
   body('servicePassword')
     .notEmpty()
     .withMessage('Service login password is required'),
+  body('visibility')
+    .optional()
+    .isIn(['public', 'private'])
+    .withMessage('Visibility must be either public or private'),
   validateResults
 ];
 
 const joinPoolRules = [
   body('inviteCode')
     .trim()
+    .optional({ checkFalsy: true })
     .isLength({ min: 8, max: 8 })
     .withMessage('Invite code must be exactly 8 characters long'),
   validateResults

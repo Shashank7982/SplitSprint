@@ -21,7 +21,7 @@ const verifyServiceCredentials = async (serviceName, email, password) => {
 
 // Create a new billing pool
 const createPool = async (req, res, next) => {
-  const { serviceName, planTier, totalCost, billingCycle, slots, upiId, serviceEmail, servicePassword } = req.body;
+  const { serviceName, planTier, totalCost, billingCycle, slots, upiId, serviceEmail, servicePassword, visibility } = req.body;
   const hostId = req.userId; // Settled by protect middleware
 
   try {
@@ -43,6 +43,7 @@ const createPool = async (req, res, next) => {
       slots,
       serviceEmail,
       servicePassword,
+      visibility: visibility || 'public',
       members: [{
         userId: hostId,
         role: 'host',
@@ -68,8 +69,8 @@ const listPools = async (req, res, next) => {
   const { service, minPrice, maxPrice, sortBy } = req.query;
 
   try {
-    // Build query conditions
-    const query = { status: 'active' };
+    // Build query conditions (only return active pools that are public)
+    const query = { status: 'active', visibility: 'public' };
 
     if (service) {
       query.serviceName = { $regex: service, $options: 'i' }; // Case-insensitive regex
@@ -216,9 +217,11 @@ const joinPool = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Pool not found' });
     }
 
-    // 2. Validate invite code matches
-    if (pool.inviteCode !== inviteCode) {
-      return res.status(400).json({ success: false, message: 'Invalid invite code' });
+    // 2. Validate invite code matches (only required for private pools)
+    if (pool.visibility === 'private') {
+      if (!inviteCode || pool.inviteCode !== inviteCode.trim().toUpperCase()) {
+        return res.status(400).json({ success: false, message: 'A valid invite code is required to join this private pool' });
+      }
     }
 
     // 3. Verify pool is active

@@ -81,6 +81,11 @@ const poolSchema = new mongoose.Schema({
     enum: ['draft', 'active', 'closed'],
     default: 'active'
   },
+  visibility: {
+    type: String,
+    enum: ['public', 'private'],
+    default: 'public'
+  },
   members: [memberSchema],
   serviceEmail: {
     type: String,

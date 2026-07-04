@@ -31,6 +31,7 @@ const CreatePoolPage = () => {
     upiId: '',
     serviceEmail: '',
     servicePassword: '',
+    visibility: 'public',
   });
   const [errors, setErrors] = useState({});
   const [createdPool, setCreatedPool] = useState(null);
@@ -281,6 +282,34 @@ const CreatePoolPage = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Pool Visibility */}
+            <div className="flex flex-col gap-1">
+              <label className="font-mono text-xs text-[#94A3B8] uppercase tracking-wider">Pool Visibility</label>
+              <div className="flex gap-2.5 mt-2">
+                {['public', 'private'].map((vis) => (
+                  <button
+                    key={vis}
+                    type="button"
+                    onClick={() => setForm({ ...form, visibility: vis })}
+                    className={[
+                      'flex-1 py-3 px-4 rounded-xl border text-xs font-mono text-left transition-all duration-200 flex flex-col gap-0.5',
+                      form.visibility === vis
+                        ? 'border-[#F7931A]/60 bg-[#F7931A]/10 text-[#F7931A]'
+                        : 'border-white/10 text-[#94A3B8] hover:border-white/20',
+                    ].join(' ')}
+                    aria-pressed={form.visibility === vis}
+                  >
+                    <span className="font-bold capitalize">{vis}</span>
+                    <span className="text-[10px] text-[#94A3B8] font-sans">
+                      {vis === 'public'
+                        ? 'Anyone can browse and join directly'
+                        : 'Invite-only, hidden from search results'}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 

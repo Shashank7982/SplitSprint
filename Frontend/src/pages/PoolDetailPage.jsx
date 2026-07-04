@@ -29,10 +29,16 @@ const JoinModal = ({ pool, onClose, onSuccess }) => {
 
   const handleJoin = async (e) => {
     e.preventDefault();
-    if (!inviteCode.trim()) { setError('Invite code is required'); return; }
+    if (pool.visibility === 'private' && !inviteCode.trim()) {
+      setError('Invite code is required for private pools');
+      return;
+    }
     setError('');
     try {
-      await joinPool.mutateAsync({ poolId: pool._id, inviteCode: inviteCode.trim().toUpperCase() });
+      await joinPool.mutateAsync({ 
+        poolId: pool._id, 
+        inviteCode: pool.visibility === 'private' ? inviteCode.trim().toUpperCase() : '' 
+      });
       dispatch(addToast({ type: 'success', message: `Joined ${pool.serviceName} pool!` }));
       onSuccess();
     } catch (err) {
@@ -61,17 +67,28 @@ const JoinModal = ({ pool, onClose, onSuccess }) => {
         </div>
 
         <form onSubmit={handleJoin} noValidate className="flex flex-col gap-4">
-          <Input
-            label="Invite Code"
-            type="text"
-            id="invite-code"
-            placeholder="8-character code (e.g. ABC12345)"
-            value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-            error={error}
-            className="font-mono tracking-widest text-center text-lg"
-            maxLength={8}
-          />
+          {pool.visibility === 'private' ? (
+            <Input
+              label="Invite Code"
+              type="text"
+              id="invite-code"
+              placeholder="8-character code (e.g. ABC12345)"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              error={error}
+              className="font-mono tracking-widest text-center text-lg"
+              maxLength={8}
+            />
+          ) : (
+            <div className="py-2 text-center text-xs text-[#94A3B8] font-mono leading-relaxed border border-white/5 bg-black/25 rounded-xl p-4">
+              🌐 This is a public pool. No invite code is required to join.
+            </div>
+          )}
+          
+          {error && pool.visibility !== 'private' && (
+            <p className="text-red-500 text-xs font-mono text-center">{error}</p>
+          )}
+
           <Button type="submit" loading={joinPool.isPending} className="w-full">
             <UserPlus size={15} /> Join Pool
           </Button>
@@ -315,6 +332,9 @@ const PoolDetailPage = () => {
                   <div className="flex items-center gap-3 flex-wrap mb-1">
                     <h1 className="font-heading font-bold text-2xl text-white">{pool.serviceName}</h1>
                     <StatusBadge status={pool.status} />
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono border ${pool.visibility === 'private' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
+                      {pool.visibility === 'private' ? '🔒 Private' : '🌐 Public'}
+                    </span>
                   </div>
                   <p className="text-[#94A3B8] text-sm">{pool.planTier}</p>
                   <p className="font-mono text-xs text-[#94A3B8] mt-1 capitalize">{pool.billingCycle} billing</p>
