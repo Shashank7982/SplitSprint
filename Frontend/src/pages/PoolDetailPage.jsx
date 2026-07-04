@@ -214,7 +214,11 @@ const PoolDetailPage = () => {
 
   const pool = data.pool || data;
   const icon = serviceIcons[pool.serviceName] || serviceIcons.default;
-  const memberObj = pool.members?.find((m) => m.userId === (user?.id || user?._id) || m.userId?._id === (user?.id || user?._id));
+  const currentUserId = String(user?.id || user?._id || '');
+  const memberObj = pool.members?.find((m) => {
+    const memberId = String(m.userId?._id || m.userId || '');
+    return memberId && currentUserId && memberId === currentUserId;
+  });
   const isMember = !!memberObj;
   const isHost = memberObj?.role === 'host';
   const slotsAvail = pool.slots - (pool.members?.length || 0);
