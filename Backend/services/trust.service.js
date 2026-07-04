@@ -36,6 +36,17 @@ const recalculateUserTrustScore = async (userId) => {
     });
     score -= defaultedPools.length * 25; // Pool Default: -25
 
+    // 3. Check for hosted pool disputes
+    const hostedPoolsWithDisputes = await Pool.find({
+      hostId: userId,
+      'disputes.0': { $exists: true }
+    });
+    let disputesCount = 0;
+    for (const p of hostedPoolsWithDisputes) {
+      disputesCount += p.disputes.length;
+    }
+    score -= disputesCount * 20; // Dispute: -20 per report
+
     // Enforce bounds: [0, 100]
     score = Math.max(0, Math.min(100, score));
 

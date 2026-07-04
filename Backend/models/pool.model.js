@@ -22,6 +22,23 @@ const memberSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+const disputeSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  reason: {
+    type: String,
+    required: [true, 'Dispute reason is required'],
+    trim: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { _id: false });
+
 const poolSchema = new mongoose.Schema({
   hostId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -76,6 +93,7 @@ const poolSchema = new mongoose.Schema({
     required: [true, 'Service login password is required'],
     select: false
   },
+  disputes: [disputeSchema],
   inviteCode: {
     type: String,
     unique: true

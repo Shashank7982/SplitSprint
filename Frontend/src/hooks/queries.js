@@ -126,6 +126,19 @@ export const useCreatePaymentIntent = () => {
   });
 };
 
+export const useDisputePool = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ poolId, reason }) => {
+      const { data } = await api.post(`/api/pools/${poolId}/dispute`, { reason });
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['pool-detail', variables.poolId] });
+    }
+  });
+};
+
 // ─── Auth Mutations ──────────────────────────────────────────────────────────
 
 export const useRegister = () => {

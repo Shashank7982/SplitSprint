@@ -6,7 +6,7 @@ import {
   Users, Calendar, CreditCard, ArrowLeft, Shield,
   Copy, Check, UserPlus, X, Crown, Zap, Lock
 } from 'lucide-react';
-import { usePool, useJoinPool, useCreatePaymentIntent, usePayUpi, useVerifyUpiPayment } from '../hooks/queries';
+import { usePool, useJoinPool, useCreatePaymentIntent, usePayUpi, useVerifyUpiPayment, useDisputePool } from '../hooks/queries';
 import { selectCurrentUser } from '../store/authSlice';
 import { addToast } from '../store/uiSlice';
 import { TrustBadge, ScoreBadge, StatusBadge } from '../components/ui/Badge';
@@ -79,6 +79,66 @@ const JoinModal = ({ pool, onClose, onSuccess }) => {
 
         <p className="font-mono text-xs text-[#94A3B8] text-center mt-4">
           Requires Trust Score ≥ 50 to join.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Dispute Modal ───────────────────────────────────────────────────────── */
+const DisputeModal = ({ pool, onClose, onSuccess }) => {
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState('');
+  const disputePool = useDisputePool();
+  const dispatch = useDispatch();
+
+  const handleDispute = async (e) => {
+    e.preventDefault();
+    if (!reason.trim()) { setError('Please provide a reason for the report'); return; }
+    setError('');
+    try {
+      await disputePool.mutateAsync({ poolId: pool._id, reason: reason.trim() });
+      dispatch(addToast({ type: 'success', message: 'Report submitted. Host has been penalized.' }));
+      onSuccess();
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to submit report.';
+      setError(msg);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="dispute-modal-title">
+      <div className="bg-[#0F1115] border border-red-500/35 rounded-2xl p-8 max-w-sm w-full shadow-[0_0_80px_-20px_rgba(239,68,68,0.3)]">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Shield size={18} className="text-red-500" />
+            <h2 id="dispute-modal-title" className="font-heading font-semibold text-white">Report Credentials</h2>
+          </div>
+          <button onClick={onClose} className="text-[#94A3B8] hover:text-white transition-colors" aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleDispute} noValidate className="flex flex-col gap-4">
+          <label htmlFor="dispute-reason" className="font-mono text-xs text-[#94A3B8] uppercase tracking-wider block">
+            Reason for Report
+          </label>
+          <textarea
+            id="dispute-reason"
+            rows="3"
+            placeholder="e.g., Host changed the password, or the ID is invalid."
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500/50 resize-none font-sans"
+          />
+          {error && <p className="text-red-500 text-xs font-mono">{error}</p>}
+          <Button type="submit" variant="danger" loading={disputePool.isPending} className="w-full">
+            Submit Report
+          </Button>
+        </form>
+
+        <p className="font-mono text-[10px] text-[#94A3B8] text-center mt-4">
+          Filing a dispute applies a heavy penalty (-20 trust score) to the Host's profile.
         </p>
       </div>
     </div>
@@ -165,6 +225,7 @@ const PoolDetailPage = () => {
   const { data, isLoading, error, refetch } = usePool(id);
   const [showJoin, setShowJoin] = useState(false);
   const [showPay, setShowPay] = useState(false);
+  const [showDispute, setShowDispute] = useState(false);
   const [copied, setCopied] = useState(false);
   const [payMethod, setPayMethod] = useState('stripe'); // stripe or upi
   const [upiLoading, setUpiLoading] = useState(false);
@@ -228,6 +289,22 @@ const PoolDetailPage = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* ── Left: Pool Info ── */}
           <div className="lg:col-span-2 flex flex-col gap-6">
+            {/* Disputes Warning Banner */}
+            {pool.disputes && pool.disputes.length > 0 && (
+              <div className="bg-red-500/10 border border-red-500/25 rounded-2xl p-5 flex items-start gap-3 shadow-[0_0_30px_-5px_rgba(239,68,68,0.15)]">
+                <Shield size={20} className="text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-heading font-semibold text-white text-sm">Credentials Under Dispute</h4>
+                  <p className="text-[#94A3B8] text-xs mt-1">
+                    {pool.disputes.length === 1
+                      ? `A contributor has reported a credentials issue: "${pool.disputes[0].reason}"`
+                      : `${pool.disputes.length} contributors have reported credential issues with this pool. Proceed with caution.`
+                    }
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Header card */}
             <div className="bg-[#0F1115] border border-white/10 rounded-2xl p-7">
               <div className="flex items-start gap-5 mb-6">
@@ -304,6 +381,15 @@ const PoolDetailPage = () => {
                         <Copy size={16} />
                       </button>
                     </div>
+
+                    {!isHost && !pool.disputes?.some(d => String(d.userId?._id || d.userId || '') === currentUserId) && (
+                      <button
+                        onClick={() => setShowDispute(true)}
+                        className="mt-2 text-center text-xs font-mono text-red-400 hover:text-red-300 hover:underline flex items-center justify-center gap-1.5 transition-all self-center py-1.5 px-3 rounded bg-red-500/5 border border-red-500/10 hover:bg-red-500/10"
+                      >
+                        <Shield size={13} /> Report login/password issue
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="p-6 bg-[#F7931A]/5 border border-[#F7931A]/20 rounded-xl text-center flex flex-col items-center gap-3">
@@ -577,6 +663,15 @@ const PoolDetailPage = () => {
           pool={pool}
           onClose={() => setShowJoin(false)}
           onSuccess={() => { setShowJoin(false); refetch(); }}
+        />
+      )}
+
+      {/* Dispute Modal */}
+      {showDispute && (
+        <DisputeModal
+          pool={pool}
+          onClose={() => setShowDispute(false)}
+          onSuccess={() => { setShowDispute(false); refetch(); }}
         />
       )}
     </main>

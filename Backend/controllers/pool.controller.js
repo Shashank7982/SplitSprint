@@ -407,6 +407,92 @@ const verifyUpiPayment = async (req, res, next) => {
   }
 };
 
+// Dispute credentials for a pool
+const disputePool = async (req, res, next) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  const userId = req.userId;
+
+  try {
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({ success: false, message: 'Dispute reason is required' });
+    }
+
+    const pool = await Pool.findById(id);
+    if (!pool) return res.status(404).json({ success: false, message: 'Pool not found' });
+
+    // Check if the user is a member of the pool
+    const member = pool.members.find(m => m.userId.toString() === userId);
+    if (!member) {
+      return res.status(403).json({ success: false, message: 'Only members of this pool can file a dispute' });
+    }
+
+    // Verify user has paid for the current cycle
+    const Transaction = require('../models/transaction.model');
+    const cycleStart = new Date(pool.nextBillingDate);
+    if (pool.billingCycle === 'annual') {
+      cycleStart.setFullYear(cycleStart.getFullYear() - 1);
+    } else {
+      cycleStart.setMonth(cycleStart.getMonth() - 1);
+    }
+
+    const now = new Date();
+    let hasPaidThisCycle = false;
+    if (now < cycleStart) {
+      hasPaidThisCycle = true;
+    } else {
+      const tx = await Transaction.findOne({
+        poolId: pool._id,
+        userId,
+        type: 'contributor_debit',
+        status: 'completed',
+        createdAt: { $gte: cycleStart }
+      });
+      if (tx) hasPaidThisCycle = true;
+    }
+
+    // Only paid contributors can dispute (Host cannot dispute their own pool)
+    if (member.role === 'host') {
+      return res.status(400).json({ success: false, message: 'Hosts cannot file disputes on their own pools' });
+    }
+
+    if (!hasPaidThisCycle) {
+      return res.status(403).json({ success: false, message: 'You must pay your share before you can file a dispute' });
+    }
+
+    // Check if user already disputed this pool
+    const alreadyDisputed = pool.disputes.some(d => d.userId.toString() === userId);
+    if (alreadyDisputed) {
+      return res.status(400).json({ success: false, message: 'You have already filed a dispute for this pool' });
+    }
+
+    // Push dispute
+    pool.disputes.push({
+      userId,
+      reason: reason.trim()
+    });
+
+    await pool.save();
+
+    // Recalculate Host's trust score (-20 penalty will be applied inside recalculateUserTrustScore)
+    const { recalculateUserTrustScore } = require('../services/trust.service');
+    await recalculateUserTrustScore(pool.hostId);
+
+    const updatedPool = await Pool.findById(pool._id)
+      .select('+serviceEmail +servicePassword')
+      .populate('hostId', 'name email trustScore')
+      .populate('members.userId', 'name email trustScore');
+
+    res.status(200).json({
+      success: true,
+      message: 'Dispute submitted successfully and host penalized',
+      pool: updatedPool
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createPool,
   listPools,
@@ -415,5 +501,6 @@ module.exports = {
   joinPool,
   approveMember,
   payUpi,
-  verifyUpiPayment
+  verifyUpiPayment,
+  disputePool
 };

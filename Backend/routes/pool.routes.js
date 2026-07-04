@@ -9,7 +9,8 @@ const {
   joinPool,
   approveMember,
   payUpi,
-  verifyUpiPayment
+  verifyUpiPayment,
+  disputePool
 } = require('../controllers/pool.controller');
 
 const router = express.Router();
@@ -22,5 +23,6 @@ router.post('/:id/join', protect, joinPoolRules, joinPool);
 router.post('/:id/approve', protect, approveMember);
 router.post('/:id/pay-upi', protect, payUpi);
 router.post('/:id/verify-payment', protect, verifyUpiPayment);
+router.post('/:id/dispute', protect, disputePool);
 
 module.exports = router;
