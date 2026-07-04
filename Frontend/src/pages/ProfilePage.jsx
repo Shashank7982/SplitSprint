@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { selectCurrentUser } from '../store/authSlice';
-import { useMyTransactions } from '../hooks/queries';
+import { useMyTransactions, useUserProfile } from '../hooks/queries';
 import TrustScoreDial from '../components/ui/TrustScoreDial';
 import { TrustBadge } from '../components/ui/Badge';
 import { Shield, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, RotateCcw, ArrowRight } from 'lucide-react';
@@ -26,7 +26,8 @@ const fmt = (cents) =>
 
 const ProfilePage = () => {
   const user = useSelector(selectCurrentUser);
-  const score = user?.trustScore ?? 100;
+  const { data: profileData } = useUserProfile();
+  const score = profileData?.user?.trustScore ?? user?.trustScore ?? 100;
   const { data: txData, isLoading: txLoading } = useMyTransactions();
 
   const realTransactions = txData?.transactions || [];

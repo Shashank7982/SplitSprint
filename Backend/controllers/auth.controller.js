@@ -154,9 +154,33 @@ const logout = (req, res) => {
   });
 };
 
+// Get current user profile (dynamic fetch)
+const getProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        trustScore: user.trustScore,
+        trustBadge: user.trustBadge,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   refresh,
-  logout
+  logout,
+  getProfile
 };

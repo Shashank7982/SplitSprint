@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { selectCurrentUser } from '../store/authSlice';
-import { useMyPools, useJoinPool, useMyTransactions } from '../hooks/queries';
+import { useMyPools, useJoinPool, useMyTransactions, useUserProfile } from '../hooks/queries';
 import { addToast } from '../store/uiSlice';
 import api from '../services/api';
 import {
@@ -183,6 +183,7 @@ const PoolCard = ({ pool, role }) => {
 /* ─── Dashboard Page ──────────────────────────────────────────────────────── */
 const DashboardPage = () => {
   const user = useSelector(selectCurrentUser);
+  const { data: profileData } = useUserProfile();
   const [showJoin, setShowJoin] = useState(false);
   const { data: myPoolsData, isLoading, refetch } = useMyPools();
 
@@ -191,7 +192,7 @@ const DashboardPage = () => {
 
   const { data: txData } = useMyTransactions();
 
-  const score = user?.trustScore ?? 100;
+  const score = profileData?.user?.trustScore ?? user?.trustScore ?? 100;
 
   // Build a set of poolIds the user has completed payments for
   const paidPoolIds = new Set(

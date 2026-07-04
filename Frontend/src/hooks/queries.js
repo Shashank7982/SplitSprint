@@ -1,6 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
+export const useUserProfile = () => {
+  return useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const { data } = await api.get('/api/auth/profile');
+      return data;
+    },
+    staleTime: 0,
+  });
+};
+
 // ─── Transaction Queries ─────────────────────────────────────────────────────
 
 export const useMyTransactions = () => {
