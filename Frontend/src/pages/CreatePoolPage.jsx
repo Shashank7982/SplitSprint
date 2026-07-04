@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import {
   Tv, Music, Play, Layers, MessageSquare, Sparkles, Search, FileText,
   PenTool, Layout, Cloud, Users, BookOpen, Gamepad2, HelpCircle,
-  ToggleLeft, ToggleRight, ArrowRight, Copy, Check, Zap
+  ToggleLeft, ToggleRight, ArrowRight, Copy, Check, Zap, X
 } from 'lucide-react';
 import { useCreatePool } from '../hooks/queries';
 import { addToast } from '../store/uiSlice';
@@ -46,6 +46,7 @@ const CreatePoolPage = () => {
     billingCycle: 'monthly',
     slots: 4,
     upiId: '',
+    upiQrCode: '',
     serviceEmail: '',
     servicePassword: '',
     visibility: 'public',
@@ -286,9 +287,56 @@ const CreatePoolPage = () => {
               id="pool-upi"
               placeholder="e.g. yourname@upi (For direct members payments)"
               value={form.upiId}
-              onChange={(e) => setForm({ ...form, upiId: e.target.value })}
+              onChange={(e) => setForm({ ...form, upiId: e.target.value, upiQrCode: e.target.value ? form.upiQrCode : '' })}
               error={errors.upiId}
             />
+
+            {/* UPI QR Code Upload */}
+            {form.upiId && (
+              <div className="flex flex-col gap-1">
+                <label className="font-mono text-xs text-[#94A3B8] uppercase tracking-wider">UPI QR Code Photo (Optional)</label>
+                <div className="mt-2 flex items-center gap-4">
+                  {form.upiQrCode ? (
+                    <div className="relative w-28 h-28 rounded-xl border border-white/10 overflow-hidden bg-black/40 p-2 flex items-center justify-center">
+                      <img src={form.upiQrCode} alt="Uploaded QR Preview" className="max-w-full max-h-full object-contain rounded-lg" />
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, upiQrCode: '' })}
+                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md transition-colors"
+                        title="Remove image"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex-1 flex flex-col items-center justify-center gap-2 border border-dashed border-white/10 rounded-xl p-5 hover:bg-white/[0.02] hover:border-[#F7931A]/30 transition-all cursor-pointer">
+                      <Cloud size={20} className="text-[#94A3B8]" />
+                      <span className="text-xs text-white font-medium">Upload QR Photo</span>
+                      <span className="text-[10px] text-[#94A3B8]">PNG, JPG up to 1MB</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 1024 * 1024) {
+                              dispatch(addToast({ type: 'error', message: 'Image must be less than 1MB' }));
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              setForm({ ...form, upiQrCode: event.target.result });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Total Cost + Billing Cycle */}
             <div className="grid sm:grid-cols-2 gap-5">

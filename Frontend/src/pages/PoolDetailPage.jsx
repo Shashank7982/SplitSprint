@@ -645,11 +645,19 @@ const PoolDetailPage = () => {
                       ) : (
                         <div className="flex flex-col gap-4 text-center">
                           <div className="bg-white p-3 rounded-2xl inline-block mx-auto">
-                            <QRCodeSVG
-                              value={`upi://pay?pa=${pool.upiId}&pn=${encodeURIComponent(pool.hostId?.name || 'SplitStream Host')}&am=${(pool.shareAmount / 100).toFixed(2)}&cu=INR&tn=${encodeURIComponent('SplitStream: ' + pool.serviceName)}`}
-                              size={180}
-                              level="M"
-                            />
+                            {pool.upiQrCode ? (
+                              <img
+                                src={pool.upiQrCode}
+                                alt="UPI QR Code"
+                                className="w-[180px] h-[180px] object-contain rounded-lg"
+                              />
+                            ) : (
+                              <QRCodeSVG
+                                value={`upi://pay?pa=${pool.upiId}&pn=${encodeURIComponent(pool.hostId?.name || 'SplitStream Host')}&am=${(pool.shareAmount / 100).toFixed(2)}&cu=INR&tn=${encodeURIComponent('SplitStream: ' + pool.serviceName)}`}
+                                size={180}
+                                level="M"
+                              />
+                            )}
                           </div>
                           
                           <div className="flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">

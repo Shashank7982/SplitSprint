@@ -49,6 +49,9 @@ const poolSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  upiQrCode: {
+    type: String
+  },
   serviceName: {
     type: String,
     required: [true, 'Service name is required'],

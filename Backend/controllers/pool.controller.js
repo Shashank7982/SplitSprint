@@ -21,7 +21,7 @@ const verifyServiceCredentials = async (serviceName, email, password) => {
 
 // Create a new billing pool
 const createPool = async (req, res, next) => {
-  const { serviceName, planTier, totalCost, billingCycle, slots, upiId, serviceEmail, servicePassword, visibility } = req.body;
+  const { serviceName, planTier, totalCost, billingCycle, slots, upiId, upiQrCode, serviceEmail, servicePassword, visibility } = req.body;
   const hostId = req.userId; // Settled by protect middleware
 
   try {
@@ -36,6 +36,7 @@ const createPool = async (req, res, next) => {
     const pool = new Pool({
       hostId,
       upiId,
+      upiQrCode,
       serviceName,
       planTier,
       totalCost,
