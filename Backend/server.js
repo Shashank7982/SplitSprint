@@ -13,6 +13,7 @@ const errorHandler = require('./middleware/error.middleware');
 const { globalLimiter } = require('./middleware/rateLimit.middleware');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Vercel) for rate limiting
 const PORT = process.env.PORT || 5000;
 
 // Connect to Database
