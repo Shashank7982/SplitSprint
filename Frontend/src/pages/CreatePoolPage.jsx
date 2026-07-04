@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
-  Tv, Music, Play, Layers, ToggleLeft, ToggleRight,
-  Users, ArrowRight, Copy, Check, Zap
+  Tv, Music, Play, Layers, MessageSquare, Sparkles, Search, FileText,
+  PenTool, Layout, Cloud, Users, BookOpen, Gamepad2, HelpCircle,
+  ToggleLeft, ToggleRight, ArrowRight, Copy, Check, Zap
 } from 'lucide-react';
 import { useCreatePool } from '../hooks/queries';
 import { addToast } from '../store/uiSlice';
@@ -11,10 +12,26 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 
 const servicePresets = [
-  { name: 'Netflix',  icon: Tv,       color: '#E50914' },
-  { name: 'Spotify',  icon: Music,    color: '#1DB954' },
-  { name: 'YouTube',  icon: Play,  color: '#FF0000' },
-  { name: 'Adobe',    icon: Layers,   color: '#FF0000' },
+  { name: 'Netflix', icon: Tv },
+  { name: 'Amazon Prime', icon: Play },
+  { name: 'Disney+', icon: Tv },
+  { name: 'Spotify Premium', icon: Music },
+  { name: 'YouTube Premium', icon: Play },
+  { name: 'Apple Music', icon: Music },
+  { name: 'ChatGPT Plus', icon: MessageSquare },
+  { name: 'Google AI Pro (Gemini)', icon: Sparkles },
+  { name: 'Claude Pro', icon: Sparkles },
+  { name: 'Perplexity Pro', icon: Search },
+  { name: 'Microsoft 365', icon: FileText },
+  { name: 'Adobe Creative Cloud', icon: Layers },
+  { name: 'Canva Pro', icon: PenTool },
+  { name: 'Notion Plus', icon: FileText },
+  { name: 'Figma Professional', icon: Layout },
+  { name: 'Dropbox Plus', icon: Cloud },
+  { name: 'Google One', icon: Cloud },
+  { name: 'LinkedIn Premium', icon: Users },
+  { name: 'Duolingo Super', icon: BookOpen },
+  { name: 'Xbox Game Pass Ultimate', icon: Gamepad2 }
 ];
 
 const CreatePoolPage = () => {
@@ -36,6 +53,7 @@ const CreatePoolPage = () => {
   const [errors, setErrors] = useState({});
   const [createdPool, setCreatedPool] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [isCustom, setIsCustom] = useState(false);
 
   const shareAmount = form.totalCost && form.slots
     ? Math.round(Number(form.totalCost) / form.slots)
@@ -172,37 +190,61 @@ const CreatePoolPage = () => {
               <label className="font-mono text-xs text-[#94A3B8] uppercase tracking-wider block mb-3">
                 Quick Pick
               </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {servicePresets.map((s) => (
                   <button
                     key={s.name}
                     type="button"
-                    onClick={() => setForm({ ...form, serviceName: s.name })}
+                    onClick={() => {
+                      setForm({ ...form, serviceName: s.name });
+                      setIsCustom(false);
+                    }}
                     className={[
-                      'flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs font-mono transition-all duration-200',
-                      form.serviceName === s.name
+                      'flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-mono transition-all duration-200 text-left',
+                      !isCustom && form.serviceName === s.name
                         ? 'border-[#F7931A]/60 bg-[#F7931A]/10 text-[#F7931A]'
-                        : 'border-white/8 text-[#94A3B8] hover:border-white/20 hover:text-white',
+                        : 'border-white/5 bg-white/[0.02] text-[#94A3B8] hover:border-white/20 hover:text-white',
                     ].join(' ')}
-                    aria-pressed={form.serviceName === s.name}
+                    aria-pressed={!isCustom && form.serviceName === s.name}
                   >
-                    <s.icon size={20} />
-                    {s.name}
+                    <s.icon size={15} className="shrink-0" />
+                    <span className="truncate">{s.name}</span>
                   </button>
                 ))}
+                
+                {/* Other button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm({ ...form, serviceName: '' });
+                    setIsCustom(true);
+                  }}
+                  className={[
+                    'flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-mono transition-all duration-200 text-left',
+                    isCustom
+                      ? 'border-[#F7931A]/60 bg-[#F7931A]/10 text-[#F7931A]'
+                      : 'border-white/5 bg-white/[0.02] text-[#94A3B8] hover:border-white/20 hover:text-white',
+                  ].join(' ')}
+                  aria-pressed={isCustom}
+                >
+                  <HelpCircle size={15} className="shrink-0" />
+                  <span>Other</span>
+                </button>
               </div>
             </div>
 
-            {/* Service Name */}
-            <Input
-              label="Service Name"
-              type="text"
-              id="pool-service"
-              placeholder="e.g. Netflix, Spotify, Adobe..."
-              value={form.serviceName}
-              onChange={(e) => setForm({ ...form, serviceName: e.target.value })}
-              error={errors.serviceName}
-            />
+            {/* Custom Service Name */}
+            {isCustom && (
+              <Input
+                label="Custom Service Name"
+                type="text"
+                id="pool-service"
+                placeholder="e.g. Netflix, Spotify, Adobe..."
+                value={form.serviceName}
+                onChange={(e) => setForm({ ...form, serviceName: e.target.value })}
+                error={errors.serviceName}
+              />
+            )}
 
             {/* Plan Tier */}
             <Input

@@ -6,7 +6,32 @@ import { TrustBadge, StatusBadge } from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 
-const serviceIcons = { Netflix: '📺', Spotify: '🎵', YouTube: '▶️', Adobe: '🎨', Disney: '🏰', Apple: '🍎', default: '📦' };
+const serviceIcons = {
+  'Netflix': '📺',
+  'Amazon Prime': '🎬',
+  'Disney+': '🏰',
+  'Spotify Premium': '🎵',
+  'Spotify': '🎵',
+  'YouTube Premium': '▶️',
+  'YouTube': '▶️',
+  'Apple Music': '🍎',
+  'ChatGPT Plus': '💬',
+  'Google AI Pro (Gemini)': '✨',
+  'Claude Pro': '🧠',
+  'Perplexity Pro': '🔍',
+  'Microsoft 365': '💼',
+  'Adobe Creative Cloud': '🎨',
+  'Adobe': '🎨',
+  'Canva Pro': '🖌️',
+  'Notion Plus': '📝',
+  'Figma Professional': '📐',
+  'Dropbox Plus': '☁️',
+  'Google One': '💾',
+  'LinkedIn Premium': '👔',
+  'Duolingo Super': '🦉',
+  'Xbox Game Pass Ultimate': '🎮',
+  default: '📦'
+};
 
 const fmt = (cents) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(cents / 100);
