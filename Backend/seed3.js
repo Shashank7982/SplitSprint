@@ -5,7 +5,7 @@ require('dotenv').config();
 
 async function seed() {
   try {
-    await mongoose.connect('mongodb://127.0.0.1:27017/splitstream');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/splitstream');
     console.log('Connected to MongoDB');
 
     // Find the user by their actual email to use as the contributor
