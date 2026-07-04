@@ -138,14 +138,21 @@ const getPoolById = async (req, res, next) => {
         cycleStart.setMonth(cycleStart.getMonth() - 1);
       }
 
-      const tx = await Transaction.findOne({
-        poolId: pool._id,
-        userId: req.userId,
-        type: 'contributor_debit',
-        status: 'completed',
-        createdAt: { $gte: cycleStart }
-      });
-      if (tx) hasPaidThisCycle = true;
+      const now = new Date();
+      if (now < cycleStart) {
+        // Billing date has already rolled forward (meaning all contributors paid),
+        // so the user is paid up for the active cycle.
+        hasPaidThisCycle = true;
+      } else {
+        const tx = await Transaction.findOne({
+          poolId: pool._id,
+          userId: req.userId,
+          type: 'contributor_debit',
+          status: 'completed',
+          createdAt: { $gte: cycleStart }
+        });
+        if (tx) hasPaidThisCycle = true;
+      }
     }
 
     poolObj.hasPaidThisCycle = hasPaidThisCycle;
