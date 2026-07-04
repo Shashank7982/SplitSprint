@@ -10,14 +10,23 @@ import Button from '../ui/Button';
 const NavLink = ({ to, children }) => {
   const { pathname } = useLocation();
   const active = pathname === to;
+  const isAnchor = to.includes('#');
+
+  const classes = [
+    'font-mono text-xs uppercase tracking-widest transition-colors duration-200',
+    active && !isAnchor ? 'text-[#F7931A]' : 'text-[#94A3B8] hover:text-white',
+  ].join(' ');
+
+  if (isAnchor) {
+    return (
+      <a href={to} className={classes}>
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <Link
-      to={to}
-      className={[
-        'font-mono text-xs uppercase tracking-widest transition-colors duration-200',
-        active ? 'text-[#F7931A]' : 'text-[#94A3B8] hover:text-white',
-      ].join(' ')}
-    >
+    <Link to={to} className={classes}>
       {children}
     </Link>
   );
